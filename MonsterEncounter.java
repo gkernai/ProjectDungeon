@@ -1,4 +1,4 @@
-public class MonsterEncounter extends RoomContent {
+public class MonsterEncounter extends RoomContent {//This super class holds other room classes such as mimic room.
     Monster monster;
     MonsterEncounter(Monster monster){
         this.monster = monster;}
@@ -6,4 +6,5 @@ public class MonsterEncounter extends RoomContent {
         return this.monster;
     }
 }
+
 
