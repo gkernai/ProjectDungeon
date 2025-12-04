@@ -1,4 +1,4 @@
-public class MimicRoom extends RoomContent{//This class holds a unqie monster called Mimic.İts ambushes our player and causes  losing some hp.
+public class MimicRoom extends RoomContent{//This class holds a unique monster called Mimic.İts ambushes our player and causes  losing some hp.
     public MimicRoom(){}
     public void Trap(Player player){
         int trapDamage=15;
@@ -13,4 +13,5 @@ public class MimicRoom extends RoomContent{//This class holds a unqie monster ca
         }
     }
 }
+
 
