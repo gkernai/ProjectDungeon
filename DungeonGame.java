@@ -11,11 +11,45 @@ public class DungeonGame {
         if( is==true || is==false){
             gamewon=is;}
     }
+public static void printMap() {
+    System.out.println("====== MAP ======");
+   
+    System.out.print("  ");
+    for (int col = 0; col < map[0].length; col++) {
+        System.out.printf(" %d ", col);
+    }
+    System.out.println(); 
+	for (int row = 0; row < map.length; row++) {
+     
+        System.out.printf("%d ", row);
 
+        for (int col = 0; col < map[row].length; col++) {
+            String symbol = " E "; 
+			if (row == playerRow && col == playerCol) {
+                symbol = " P "; 
+            } else if (map[row][col] instanceof MonsterEncounter) {
+            	MonsterEncounter me = (MonsterEncounter) map[row][col];
+                if (me.getMonster().name.equals("Lucifer")) {
+                    symbol = " L "; 
+                } else {
+                    symbol = " M "; 
+                }
+            } else if (map[row][col] instanceof HollowsGift) {
+                symbol = " H "; 
+            } else if (map[row][col] instanceof MimicRoom) {
+                symbol = " T "; 
+            }
 
+            System.out.print(symbol);
+        }
+        System.out.println(); 
+    }
+    System.out.println("=================");
+    System.out.println("P:player, M:monster, H:Treasure, T:trap, E:empty, L:Boss");
+}
+			
 
-
-    public static void startCombat(Player player,Monster monster){
+public static void startCombat(Player player,Monster monster){
         Scanner input = new Scanner(System.in);
         Random random = new Random();
         System.out.println("=========================================");
@@ -115,6 +149,7 @@ public class DungeonGame {
         System.out.println("===Welcome to the Dungeon Game!===");
         System.out.println("You are in mysterious fortress and you feeling...suppresed some voices comes to your ears and says OBEY!");
         System.out.println("What do you want to do?");
+		printMap();
         player.printStatus();
         do{
             Scanner input=new Scanner(System.in);
@@ -124,37 +159,45 @@ public class DungeonGame {
                     case "N":
                         if(playerRow-1<0){
                             System.out.println("Çıkmaz bir yol....");
+								printMap();
                             break;}
                         else{
                             playerRow-=1;
                             System.out.println("Current location is Row:"+playerRow+" Col:"+playerCol);
-                            currentroom =map[playerRow][playerCol];}
+                            currentroom =map[playerRow][playerCol];
+							printMap();}
                             break;
                     case "S":
                         if(playerRow+1>4){
                             System.out.println("Çıkmaz bir yol....");
+								printMap();
                             break;}
                         else{
                             playerRow+=1;
                             System.out.println("Current location is Row:"+playerRow+" Col:"+playerCol);
-                            currentroom =map[playerRow][playerCol];}
+                            currentroom =map[playerRow][playerCol];
+							printMap();}
                             break;
                     case "W":
                         if(playerCol-1<0){
                             System.out.println("Deadend....");
+								printMap();
                             break;}
                         else{
                             playerCol-=1;
                             System.out.println("Current location is Row:"+playerRow+" Col:"+playerCol);
-                            currentroom =map[playerRow][playerCol];}
+                            currentroom =map[playerRow][playerCol];
+							printMap();}
                             break;
                     case "E":
                         if(playerCol+1>4){System.out.println("Deadend....");
+								printMap();
                             break;}
                         else{
                             playerCol+=1;
                             System.out.println("Current location is Row:"+playerRow+" Col:"+playerCol);
-                            currentroom =map[playerRow][playerCol];}
+                            currentroom =map[playerRow][playerCol];
+								printMap();}
                             break;
                     case "I":
                     player.printStatus();
@@ -164,18 +207,17 @@ public class DungeonGame {
                         System.out.println("Guide:For moving around you need to use N,E,W,S keys ");
                         break;}
 
-                    if(currentroom instanceof MonsterEncounter){//When the monster in this room is slain, we replace the contents of this room with an empty room so that the room is purified and our character can progress more comfortably.
+                    if(currentroom instanceof MonsterEncounter){
                         MonsterEncounter encounter=(MonsterEncounter)currentroom;
                         Monster encounteredMonster=encounter.getMonster();
                         startCombat(player,encounteredMonster);
                         if(encounteredMonster.health<=0){
                             System.out.printf("%s is killed! room cleansed%n",encounteredMonster.name);
                             map[playerRow][playerCol] = new EmptyRoom();}}
-
-                    else if(currentroom instanceof HollowsGift){//Here, a mechanism was written to prevent us from constantly taking items from the HollowsGift, i.e. the treasure room.  
-                        HollowsGift gift=(HollowsGift)currentroom;//If the item is added to the inventory, the room will become empty, and this will prevent us from taking the item indefinitely.
+                    else if(currentroom instanceof HollowsGift){
+                        HollowsGift gift=(HollowsGift)currentroom;
                         String item=gift.getItem();
-                        boolean added=false;//This is an additional protection mechanism added to the for loop to prevent the item from being taken without a place.
+                        boolean added=false;
                         for(int i=0;i<player.inventory.length;i++){
                             if(player.inventory[i].equals("Empty")){
                                 player.inventory[i]=item;
@@ -184,13 +226,11 @@ public class DungeonGame {
                                 map[playerRow][playerCol] = new EmptyRoom();
                                 break;}}
                         if(!added) {
-                            System.out.println("There no room for " + item);
+                            System.out.println("There's no room for " + item);
                         }}
                     else if(currentroom instanceof MimicRoom){
                         MimicRoom mimicroom=(MimicRoom)currentroom;
                         mimicroom.Trap(player);
-						map[playerRow][playerCol]=new EmptyRoom();
-						break;
                         if(player.currentHealth<=0){
                             setGameWon(false);}
                     }
