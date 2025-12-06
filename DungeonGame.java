@@ -1,3 +1,4 @@
+import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -37,7 +38,7 @@ public static void printMap() {
             } else if (map[row][col] instanceof HollowsGift) {
                 symbol = " H "; 
             } else if (map[row][col] instanceof MimicRoom) {
-                symbol = " T "; 
+                symbol = " H "; 
             }
 
             System.out.print(symbol);
@@ -45,7 +46,7 @@ public static void printMap() {
         System.out.println(); 
     }
     System.out.println("=================");
-    System.out.println("P:player, M:monster, H:Treasure, T:trap, E:empty, L:Boss");
+    System.out.println("P:player, M:monster, H:Treasure, E:empty, L:Boss");
 }
 			
 
@@ -73,6 +74,7 @@ public static void startCombat(Player player,Monster monster){
                     monster.takeDamage(baseDamage*2);
                         if(monster.isDefeated()){
                             System.out.printf("%s is defeated!%n",monster.name);
+							
 
                             break;
                         }else{
@@ -101,25 +103,29 @@ public static void startCombat(Player player,Monster monster){
                 default:
                     System.out.println("Invalid choice.");
                     break;}
-            System.out.printf("%s's turn!",monster.name);
-             int monsterat=1+random.nextInt(2);
-             switch(monsterat){
-                 case 1:
-                     int critrandommonster=1+random.nextInt(10);
-                     if(critrandommonster==1) {
-                         player.takeDamage(monster.damage * 2);}
-                     else{player.takeDamage(monster.damage);}
-                     break;
-                case 2:
-                    monster.performSpecialAction();
-                    break;}
+			
+			if(monster.health>0){
+            	System.out.printf("%s's turn!",monster.name);
+             	int monsterat=1+random.nextInt(2);
+             	switch(monsterat){
+                 	case 1:
+                    	 int critrandommonster=1+random.nextInt(10);
+                     	if(critrandommonster==1) {
+                         	player.takeDamage(monster.damage * 2);}
+                     	else{player.takeDamage(monster.damage);}
+                     	break;
+                	case 2:
+                        if(monster.isWrathmeterFull){
+                    	monster.performSpecialAction();}
+                        else
+                    		player.takeDamage(monster.damage);}}
         }
             if(player.currentHealth<=0){System.out.println("You lost!");}
             else{System.out.println("You won!!");}}
 
 
 
-    private static RoomContent[][] createMap(){
+    private static RoomContent[][] createMap(MonsterFactory.Difficulty difficulty){
         for(int i=0;i<map.length;i++){
             for(int j=0;j<map[i].length;j++){
                 map[i][j]=new EmptyRoom();}}
@@ -131,18 +137,45 @@ public static void startCombat(Player player,Monster monster){
         map[1][4]=new HollowsGift("Strength Shard");
         map[0][4]=new MimicRoom();
         map[2][4]=new MimicRoom();
-        map[1][1]=new MonsterEncounter(MonsterFactory.createMonster("HellHound"));
-        map[1][2]=new MonsterEncounter(MonsterFactory.createMonster("HellHound"));
-        map[1][3]=new  MonsterEncounter(MonsterFactory.createMonster("HellHound"));
-        map[2][1]=new MonsterEncounter(MonsterFactory.createMonster("Demon"));
-        map[2][2]=new MonsterEncounter(MonsterFactory.createMonster("CorruptedHavensGuard"));
-        map[2][3]=new  MonsterEncounter(MonsterFactory.createMonster("Demon"));
-        map[3][2]=new  MonsterEncounter(MonsterFactory.createMonster("CorruptedHavensGuard"));
-        map[4][2]=new  MonsterEncounter(MonsterFactory.createMonster("Lucifer"));
+        map[1][1]=new MonsterEncounter(MonsterFactory.createMonster("HellHound", difficulty));
+        map[1][2]=new MonsterEncounter(MonsterFactory.createMonster("HellHound",difficulty));
+        map[1][3]=new  MonsterEncounter(MonsterFactory.createMonster("HellHound",difficulty));
+        map[2][1]=new MonsterEncounter(MonsterFactory.createMonster("Demon",difficulty));
+        map[2][2]=new MonsterEncounter(MonsterFactory.createMonster("CorruptedHavensGuard",difficulty));
+        map[2][3]=new  MonsterEncounter(MonsterFactory.createMonster("Demon",difficulty));
+        map[3][2]=new  MonsterEncounter(MonsterFactory.createMonster("CorruptedHavensGuard",difficulty));
+        map[4][2]=new  MonsterEncounter(MonsterFactory.createMonster("Lucifer",difficulty));
             return map;}
     public static void main(String[] args){
-        RoomContent[][]  map=createMap();       
-        Player player=Player.createCharacter("Chemax");
+        Scanner input2 = new Scanner(System.in);
+        MonsterFactory.Difficulty difficulty=null;
+        System.out.println("What is your name hero!");
+        String name=input2.nextLine();
+        boolean iscreated=false;
+       do{
+            try {
+                System.out.println("Select a Difficulty!(0-Easy,1-Medium,2-Hard,3-MAYHEM):");
+                difficulty= MonsterFactory.Difficulty.values()[input2.nextInt()];
+                RoomContent[][]  map=createMap(difficulty);
+                iscreated=true;
+
+                }
+            catch(InputMismatchException e){
+                System.out.println("Invalid Difficulty!Please enter a number!");
+                input2.nextLine();
+                }
+            catch (IndexOutOfBoundsException e){
+                System.out.println("Invalid Difficulty!The number must be between 0 and 3!");
+                input2.nextLine();
+                }
+            catch (Exception e){
+                System.out.println("Unexpected Error!Please try again!"+e.getMessage());
+                input2.nextLine();
+
+            }}while(!iscreated);
+
+        System.out.println("Difficulty set to:"+difficulty);
+        Player player=Player.createCharacter(name);
         playerCol=0;
         playerRow=0;
         RoomContent currentroom =map[playerRow][playerCol];
@@ -158,7 +191,8 @@ public static void startCombat(Player player,Monster monster){
             switch (movement){
                     case "N":
                         if(playerRow-1<0){
-                            System.out.println("Çıkmaz bir yol....");
+                            System.out.println("Deadend...");
+                            currentroom =map[playerRow][playerCol];
 								printMap();
                             break;}
                         else{
@@ -169,7 +203,8 @@ public static void startCombat(Player player,Monster monster){
                             break;
                     case "S":
                         if(playerRow+1>4){
-                            System.out.println("Çıkmaz bir yol....");
+                            System.out.println("Deadend...");
+                            currentroom =map[playerRow][playerCol];
 								printMap();
                             break;}
                         else{
@@ -180,7 +215,8 @@ public static void startCombat(Player player,Monster monster){
                             break;
                     case "W":
                         if(playerCol-1<0){
-                            System.out.println("Deadend....");
+                            System.out.println("Deadend...");
+                            currentroom =map[playerRow][playerCol];
 								printMap();
                             break;}
                         else{
@@ -190,7 +226,8 @@ public static void startCombat(Player player,Monster monster){
 							printMap();}
                             break;
                     case "E":
-                        if(playerCol+1>4){System.out.println("Deadend....");
+                        if(playerCol+1>4){System.out.println("Deadend...");
+                            currentroom =map[playerRow][playerCol];
 								printMap();
                             break;}
                         else{
@@ -201,6 +238,7 @@ public static void startCombat(Player player,Monster monster){
                             break;
                     case "I":
                     player.printStatus();
+                    currentroom =map[playerRow][playerCol];
                     break;
 
                     default:
@@ -213,7 +251,10 @@ public static void startCombat(Player player,Monster monster){
                         startCombat(player,encounteredMonster);
                         if(encounteredMonster.health<=0){
                             System.out.printf("%s is killed! room cleansed%n",encounteredMonster.name);
-                            map[playerRow][playerCol] = new EmptyRoom();}}
+                            map[playerRow][playerCol] = new EmptyRoom();
+                            currentroom =map[playerRow][playerCol];
+							if(encounteredMonster.name.equals("Lucifer")){
+								setGameWon(true);}}}
                     else if(currentroom instanceof HollowsGift){
                         HollowsGift gift=(HollowsGift)currentroom;
                         String item=gift.getItem();
@@ -224,9 +265,11 @@ public static void startCombat(Player player,Monster monster){
                                 System.out.println(item+" has found!!");
                                 added=true;
                                 map[playerRow][playerCol] = new EmptyRoom();
+                                currentroom =map[playerRow][playerCol];
                                 break;}}
                         if(!added) {
                             System.out.println("There's no room for " + item);
+                            currentroom =map[playerRow][playerCol];
                         }}
                     else if(currentroom instanceof MimicRoom){
                         MimicRoom mimicroom=(MimicRoom)currentroom;
